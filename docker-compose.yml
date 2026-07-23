@@ -2,9 +2,6 @@ services:
   identity-auth:
     build: ./identity-auth-service
 
-  registration:
-    build: ./registration-verification-service
-
   organization:
     build: ./organization-tenant-service
 
