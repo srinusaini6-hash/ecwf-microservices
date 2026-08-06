@@ -1,9 +1,120 @@
+
 services:
+
+  # ==========================
+  # Authentication MySQL
+  # ==========================
+  auth-db:
+    image: mysql:8.0
+    container_name: auth-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecwf_auth_db
+    ports:
+      - "3310:3306"
+    volumes:
+      - auth_db_data:/var/lib/mysql
+    networks:
+      - ecwf-network
+
+  # ==========================
+  # Organization MySQL
+  # ==========================
+  organization-db:
+    image: mysql:8.0
+    container_name: organization-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecwf_organization_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - organization_db_data:/var/lib/mysql
+    networks:
+      - ecwf-network
+
+  # ==========================
+  # Notification MySQL
+  # ==========================
+  notification-db:
+    image: mysql:8.0
+    container_name: notification-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecwf_notification_db
+    ports:
+      - "3309:3306"
+    volumes:
+      - notification_db_data:/var/lib/mysql
+    networks:
+      - ecwf-network
+
+  # ==========================
+  # Identity Authentication Service
+  # ==========================
   identity-auth:
     build: ./identity-auth-service
+    container_name: identity-auth
+    restart: always
+    depends_on:
+      - auth-db
+      - organization
+      - notification
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./identity-auth-service/.env
+    networks:
+      - ecwf-network
 
+  # ==========================
+  # Organization Service
+  # ==========================
   organization:
     build: ./organization-tenant-service
+    container_name: organization
+    restart: always
+    depends_on:
+      - organization-db
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./organization-tenant-service/.env
+    networks:
+      - ecwf-network
 
+  # ==========================
+  # Notification Service
+  # ==========================
   notification:
     build: ./notification-service
+    container_name: notification
+    restart: always
+    depends_on:
+      - notification-db
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./notification-service/.env
+    networks:
+      - ecwf-network
+
+# ==========================
+# Volumes
+# ==========================
+
+volumes:
+  auth_db_data:
+  organization_db_data:
+  notification_db_data:
+
+# ==========================
+# Network
+# ==========================
+
+networks:
+  ecwf-network:
+    driver: bridge
